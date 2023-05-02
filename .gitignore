@@ -1,0 +1,8 @@
+# VSCode
+*.code-workspace
+launch.json
+
+# Python
+__pycache__/
+env/
+venv/
