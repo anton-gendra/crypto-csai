@@ -87,60 +87,30 @@ def find_occurrences(key_length, input_text, occurences_threshold):
     return occurrences_trimmed
 
 
-def main():
-    argparser = argparse.ArgumentParser(prog='vigenere')
-    argparser.add_argument('-i', '--input', type=argparse.FileType(), help='input file')
-    argparser.add_argument('-d', '--dictionary', type=argparse.FileType(),
-                           help='file with the dictionary to be used')
-    argparser.add_argument('--hash', type=argparse.FileType(),
-                           help='file with the hash to be used for comparison')
-    argparser.add_argument('-wl', '--word-length', type=int,
-                           help='length of words for ocurrence count in length guessing (Kasiski)' +
-                           f': defaults to {WORD_LENGTH}')
-    argparser.add_argument('-klt', '--key-length-threshold', type=int,
-                           help='number of key length candidates to examine (Kasiski)' +
-                           f': defaults to {KEY_LENGTH_THRESHOLD}')
-    argparser.add_argument('-ot', '--occurrences-threshold', type=int,
-                           help=f'number of top letters to examine for each column (Kasiski)'+
-                           f': defaults to {OCCURRENCES_THRESHOLD}')
-    argparser.add_argument('-v', '--verbose', action='store_true', help='enables verbose mode')
-    args = argparser.parse_args()
-
-    if (not args.input) or (not args.dictionary) or (not args.hash):
-        sys.exit(argparser.print_help())
+def main(text_input, dictionary):
 
     # Kasiski arguments
-    word_length = args.word_length if args.word_length else WORD_LENGTH
-    key_length_threshold = args.key_length_threshold if args.key_length_threshold else KEY_LENGTH_THRESHOLD
-    occurrences_threshold = args.occurrences_threshold if args.occurrences_threshold else OCCURRENCES_THRESHOLD
+    word_length = WORD_LENGTH
+    key_length_threshold = KEY_LENGTH_THRESHOLD
+    occurrences_threshold = OCCURRENCES_THRESHOLD
 
     # Dictionaries generation
     a2i_dict, i2a_dict = {}, {}
-    for (index, value) in enumerate(args.dictionary.read().replace('\n', '')):
+    for (index, value) in enumerate(dictionary.replace('\n', '')):
         a2i_dict.update({value: index})
         i2a_dict.update({index: value})
 
-    if args.verbose:
-        print(f'DEBUG\tDictionary: {a2i_dict.keys()}')
-
     # Input text preprocessing
-    input_text = args.input.read().replace('\n', '')
-
-    # Hash preprocessing
-    input_hash = args.hash.read().replace('\n', '')
+    input_text = text_input.replace('\n', '')
 
     # Propose key lengths
     most_ocurrent_words = count_word_occurrences(
         input_text, word_length)
     key_length_candidates = key_lengths(
         set(funcreduce(iconcat, most_ocurrent_words.values(), [])))
-    if args.verbose:
-        print(f'DEBUG\tKey length candidates: {key_length_candidates}')
 
     # Decipher
     for key_length in key_length_candidates[0:key_length_threshold]:
-        if args.verbose:
-            print(f'DEBUG\tTrying keylength: {key_length}')
 
         occurrences = find_occurrences(key_length, input_text, occurrences_threshold)
 
@@ -156,15 +126,10 @@ def main():
         for key_candidate in product(*letter_key_candidates):
             decrypted_text = decipher(
                 input_text, key_candidate, a2i_dict, i2a_dict)
-            if hashlib.sha256(decrypted_text.encode('utf-8')).hexdigest() == input_hash:
-                print(f'{"".join(key_candidate)}')
-                sys.exit()
-
-    sys.exit('A key has not be found under the following Kasiski configuration:\n' + \
-             f'\t--word-length={word_length}\n' + \
-             f'\t--key-length-threshold={key_length_threshold}\n' + \
-             f'\t--occurrences-threshold={occurrences_threshold}\n' + \
-             'These heuristics are too restrictive. Try again changing the configuration values!')
+            # if hashlib.sha256(decrypted_text.encode('utf-8')).hexdigest() == input_hash:
+            #     sys.exit()
+    print(hashlib.sha256(decrypted_text.encode('utf-8')))
+    print()
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import os
 import sys
 
 from time import time
+from vigenere_cryptanalysis.vigenere import main as vg_main
 
 
 
@@ -41,8 +42,7 @@ def main():
     start_time = time()
 
     for _ in range(ITERATIONS):
-        # Do stuff
-        pass
+        vg_main(encoded_msg, 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ') # Aquí en estos hay que meter el diccionario y hash
 
     print(f"\033[92m-\033[00m {sys.argv[1]} -> {(time() - start_time):.4f} seconds")
 
