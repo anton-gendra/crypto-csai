@@ -10,7 +10,7 @@ from itertools import product
 MOST_COMMON_LETTER = ('E', 4)
 
 WORD_LENGTH = 4
-KEY_LENGTH_THRESHOLD = 4
+KEY_LENGTH_THRESHOLD = 8
 OCCURRENCES_THRESHOLD = 2
 
 
@@ -22,7 +22,12 @@ def decipher(string, key, a2i_dict, i2a_dict):
     ret = ''
     for (i, c) in enumerate(string):
         i = i % len(key)
-        ret += i2a_dict[(a2i_dict[c] - a2i_dict[key[i]]) % len(a2i_dict)]
+
+        try:
+            ret += i2a_dict[(a2i_dict[c] - a2i_dict[key[i]]) % len(a2i_dict)]
+        except KeyError:
+            return 'Wrong dictionary'
+        
     return ret
 
 
@@ -87,7 +92,7 @@ def find_occurrences(key_length, input_text, occurences_threshold):
     return occurrences_trimmed
 
 
-def main(text_input, dictionary):
+def main(text_input, dictionary, input_hash, event_queue):
 
     # Kasiski arguments
     word_length = WORD_LENGTH
@@ -126,10 +131,12 @@ def main(text_input, dictionary):
         for key_candidate in product(*letter_key_candidates):
             decrypted_text = decipher(
                 input_text, key_candidate, a2i_dict, i2a_dict)
-            # if hashlib.sha256(decrypted_text.encode('utf-8')).hexdigest() == input_hash:
-            #     sys.exit()
-    print(hashlib.sha256(decrypted_text.encode('utf-8')))
-    print()
+            
+            if not event_queue.empty() or decrypted_text == 'Wrong dictionary':
+                return "Kill signal" 
+            
+            if hashlib.sha256(decrypted_text.encode('utf-8')).hexdigest() == input_hash:
+                return key_candidate
 
 
 if __name__ == "__main__":

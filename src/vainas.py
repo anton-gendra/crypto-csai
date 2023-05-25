@@ -1,37 +1,52 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 
+from queue import Queue
 from time import time
 from vigenere_cryptanalysis.vigenere import main as vg_main
 
-
-
-ITERATIONS = 32
-
+from threading import Thread, Event
 
 
 
+ITERATIONS =  256
 
+DEBUG = False
 
-
-
-
-
-
-
+DICTIONARIES = [
+    'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+]
 
 
 
 
+
+
+
+
+
+def execute_algorithm(encoded_msg, dictionary, message_hash, start_time, event_queue: Queue):
+    for _ in range(ITERATIONS):
+        key = vg_main(encoded_msg, dictionary, message_hash, event_queue)
+        if key == "Kill signal":
+            exit()
+        
+        if key:
+            print(''.join(key))
+            print(f"\033[92m-\033[00m {sys.argv[1]} -> {(time() - start_time):.4f} seconds")
+            if not DEBUG:
+                event_queue.put("Finished")
+                exit()
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("\033[91mArgument not supplied\033[00m")
+    if len(sys.argv) < 3:
+        print("\033[91mNot enough arguments supplied\033[00m")
         exit()
 
+    message_hash = sys.argv[2]
     file_path = sys.argv[1] if "JdP_vigenere_alumnos/" in sys.argv[1] else "JdP_vigenere_alumnos/" + sys.argv[1]
     with open(file_path , 'r') as f:
         encoded_msg = f.read()
@@ -41,10 +56,20 @@ def main():
 
     start_time = time()
 
-    for _ in range(ITERATIONS):
-        vg_main(encoded_msg, 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ') # Aquí en estos hay que meter el diccionario y hash
+    threads = []
+    queue = Queue()
+    for dictonary in DICTIONARIES:
+        threads.append(Thread(target=execute_algorithm, kwargs={
+            'encoded_msg': encoded_msg, 
+            'dictionary': dictonary,
+            'message_hash': message_hash,
+            'start_time': start_time,
+            'event_queue': queue
+        }) ) 
 
-    print(f"\033[92m-\033[00m {sys.argv[1]} -> {(time() - start_time):.4f} seconds")
+    for t in threads:
+        t.start()
+
 
 if __name__ == '__main__':
     main()
