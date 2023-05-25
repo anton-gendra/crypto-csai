@@ -6,7 +6,7 @@ from queue import Queue
 from time import time
 from vigenere_cryptanalysis.vigenere import main as vg_main
 
-from threading import Thread, Event
+from threading import Thread
 
 
 
@@ -42,12 +42,12 @@ def execute_algorithm(encoded_msg, dictionary, message_hash, start_time, event_q
 
 
 def main():
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print("\033[91mNot enough arguments supplied\033[00m")
         exit()
-
-    message_hash = sys.argv[2]
-    file_path = sys.argv[1] if "JdP_vigenere_alumnos/" in sys.argv[1] else "JdP_vigenere_alumnos/" + sys.argv[1]
+   
+    message_hash = sys.argv[3]
+    file_path = sys.argv[2] if "JdP_vigenere_alumnos/" in sys.argv[2] else "JdP_vigenere_alumnos/" + sys.argv[2]
     with open(file_path , 'r') as f:
         encoded_msg = f.read()
 

@@ -2,10 +2,11 @@ FROM python:3
 
 
 WORKDIR /usr/src/app
-COPY requirements.txt ./
+COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN rm requirements.txt
 
-COPY . .
+
+ENV PYTHONPATH = /usr/src/app
 
 ENTRYPOINT ["python", "./src/vainas.py"]
