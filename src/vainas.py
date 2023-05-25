@@ -10,7 +10,7 @@ from threading import Thread
 
 
 
-ITERATIONS =  256
+ITERATIONS =  1
 
 DEBUG = False
 
@@ -35,10 +35,13 @@ def execute_algorithm(encoded_msg, dictionary, message_hash, start_time, event_q
         
         if key:
             print(''.join(key))
-            print(f"\033[92m-\033[00m {sys.argv[1]} -> {(time() - start_time):.4f} seconds")
+            
             if not DEBUG:
                 event_queue.put("Finished")
                 exit()
+            
+            else:
+                print(f"\033[92m-\033[00m {sys.argv[1]} -> {(time() - start_time):.4f} seconds")
 
 
 def main():
